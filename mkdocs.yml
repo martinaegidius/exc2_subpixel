@@ -1,0 +1,53 @@
+# mkdocs.yml
+
+# The name of your site (appears in the header and browser tab)
+site_name: Week2
+
+# Optional: a short description for search engines
+site_description: Week 2 Exercises 
+theme:
+  name: material
+  logo: 'icons/White_RGB.png'
+  
+  palette:
+    primary: custom
+    accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.instant
+    - toc.integrate
+extra_css:
+  - stylesheets/extra.css
+
+docs_dir: ex2-CamerasAndLenses
+nav:
+  - Home: readme.md
+  - Old: readme.md
+  - New: readme_new.md
+  
+
+# Markdown extensions for nicer formatting
+markdown_extensions:
+  - toc:
+      permalink: true          # Adds a § link to each heading for easy linking
+  - codehilite                  # Syntax highlighting for code blocks
+  - admonition                  # For notes/warnings/caution boxes
+  - footnotes                   # Optional, if you want footnotes
+  - tables      
+  - pymdownx.details                # Supports Markdown tables
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+# Extra options
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ludvikpet/DTU-HPC-Tutorial
+
