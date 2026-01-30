@@ -1,5 +1,4 @@
 data/images/*
 data/videos/*
 plots/*
-
-
+plots/*.png
