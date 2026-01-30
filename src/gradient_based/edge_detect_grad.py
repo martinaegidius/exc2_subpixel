@@ -61,6 +61,99 @@ def debug():
     height, width = calculate_distances(line_segments,width_coords,height_coords) #point to line distance
     print(height,width)
 
+
+def visualize_for_report():
+    paper_ROI = [[190,277],[779,711]] #fmt (y,x upper left, lower right)
+    im = imread("data/images/with_calib/crops/0.png")
+    plt.imshow(im,cmap="gray")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig("image_crop.png")
+    plt.close()
+
+    im_f = im.astype(float)
+    grad_y, grad_x = np.gradient(im_f) #im.shape 
+    grad_mag = np.sqrt(grad_x**2 + grad_y**2)
+    
+    plt.imshow(grad_x)
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig("grad_x.png")
+    plt.close()
+
+    plt.imshow(grad_x)
+    plt.axis("off")
+    plt.tight_layout()
+    plt.xlim([270,330])
+    plt.ylim([475,510])
+    plt.savefig("grad_x_close.png")
+    plt.close()
+
+    
+    grad_x, grad_y = filter_grad(grad_x,paper_ROI), filter_grad(grad_y,paper_ROI) #remove stuff outside paper ROI to reduce noise 
+    
+    #ax[2,0].plot(grad_mag[500,:])
+    #ax[2,0].imshow(grad_filtered) #checked, looks good
+    
+    plt.plot(grad_x[500,:])
+    plt.savefig("grad_x_profile.png")
+    plt.close()
+    height_coords, width_coords = estimate_subpixel(grad_x,grad_y) # width format: [row_index, left_x, right_x]
+    plt.imshow(im, cmap='gray')
+    # We filter out rows that were zeroed out by the ROI
+    valid_w = width_coords[width_coords[:, 1] > 0]
+    valid_h = height_coords[height_coords[:, 1] > 0]
+    plt.scatter(valid_w[:, 1], valid_w[:, 0], c='r', s=1, label='Left Subpixel Edge')
+    plt.scatter(valid_w[:, 2], valid_w[:, 0], c='b', s=1, label='Right Subpixel Edge')
+    #plt.scatter(valid_h[:, 0], valid_h[:, 1], c='orange', s=1, label='Upper Subpixel edge')
+    #plt.scatter(valid_h[:, 0], valid_h[:, 2], c='m', s=1, label='Bottom Subpixel Edge')
+    plt.title("Subpixel Edge Localization Overlay")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig("subpixel_scatter.png")
+    plt.close()
+    
+
+
+    
+
+    #additional median-basd noise filtering with tolerance
+    tol = 10 
+    raw_widths = width_coords[:, 2] - width_coords[:, 1]
+    median_w = np.median(raw_widths[raw_widths > 0]) 
+    refined_widths, mask_widths_clean = clean_measurements(width_coords, median_w,tolerance=tol)
+    raw_heights = height_coords[:, 2] - height_coords[:, 1]
+    median_h = np.median(raw_heights[raw_heights > 0]) 
+    refined_heights, mask_heights_clean = clean_measurements(height_coords, median_h,tolerance=tol)
+
+    #keep non-noisy
+    width_coords = width_coords[mask_widths_clean]
+    height_coords = height_coords[mask_heights_clean]
+
+
+    plt.imshow(im, cmap="gray")
+    plt.scatter(width_coords[:, 1], width_coords[:, 0], c='r', s=1, label='Left Subpixel Edge')
+    plt.scatter(width_coords[:, 2], width_coords[:, 0], c='b', s=1, label='Right Subpixel Edge')
+    plt.scatter(height_coords[:, 0], height_coords[:, 1], c='orange', s=1, label='Upper Subpixel edge')
+    plt.scatter(height_coords[:, 0], height_coords[:, 2], c='m', s=1, label='Bottom Subpixel Edge')
+    plt.title("Subpixel Edge Localization Overlay")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig("subpixel_scatter_clean.png")
+    
+    plt.xlim([270,330])
+    plt.ylim([475,510])
+    plt.savefig("scatter_clean_close.png")
+    
+    plt.close()
+
+    
+    line_segments = get_regression(width_coords,height_coords) #regress lines per edge
+    visualize_line_segments(line_segments, width_coords, height_coords, im, out_name="regressed_lines.png", only_width=True) #just for debugging
+    height, width = calculate_distances(line_segments,width_coords,height_coords) #point to line distance
+    print(height,width)
+
+
 def filter_grad(G, ROI):
     """
     Zeros out everyting outside of ROI crop. ROI format: list of lists in format y,x with upper left, lower right [[y_u_l,x_u_l],[y_b_r,x_b_r]]
@@ -135,7 +228,7 @@ def get_regression(width_coords,height_coords):
     slope_d, intercept_d, _,_,_ = linregress(col_coords, bottom_edge)
     return {"left":[slope_l,intercept_l],"right":[slope_r,intercept_r], "up":[slope_u,intercept_u], "down":[slope_d,intercept_d]}
 
-def visualize_line_segments(lines,width_coords, height_coords, im, out_name: str = None):
+def visualize_line_segments(lines,width_coords, height_coords, im, out_name: str = None, only_width: bool = False):
     row_range = np.arange(width_coords[:,0].min(),width_coords[:,0].max())
     col_range = np.arange(height_coords[:,0].min(),height_coords[:,0].max())
     
@@ -148,8 +241,9 @@ def visualize_line_segments(lines,width_coords, height_coords, im, out_name: str
     plt.imshow(im, cmap="gray")
     plt.scatter(x_l,row_range, s=1, c="r")
     plt.scatter(x_r,row_range, s=1, c="r")
-    plt.scatter(col_range,y_u, s=1, c="magenta")
-    plt.scatter(col_range,y_d, s=1, c="magenta")
+    if not only_width:
+        plt.scatter(col_range,y_u, s=1, c="magenta")
+        plt.scatter(col_range,y_d, s=1, c="magenta")
     if out_name==None:
         plt.show()
     else:
@@ -186,6 +280,8 @@ if __name__=="__main__":
     """
     See debug() for comments
     """
+  
+    
     in_folder = "data/images/with_calib/crops"
     METHOD = "lstsq"
     #output_dir_all = in_folder.rsplit("/",1)[0]+f"/tuned_threshold_masks_card/{METHOD}"

@@ -258,10 +258,12 @@ They record for approximately a minute, holding the camera as still as possible.
 
 Then, for each frame, the metrologists carry out steps which you will learn later in this course. Their procedure is as follows:
 
-1. They mark representative regions of interest in all frames and extract pixel intensities
-2. This allows them to identify threshold values for creating masks; one for the credit card, and one for the piece of paper
-3. For each mask they fit a rectangle using ***opencv***
-4. For each rectangle, they calculate the height and width
+1. Calculate the intensity gradient along the x-dimension 
+2. Per row of the intensity gradient, find the minimum and maximum peaks which are the paper boundaries 
+3. Using the gradient values in the neighbourhood around the peak coordinate, compute the centroid coordinate
+4. Filter the coordinates to remove misdetections
+5. Make a regression on the remaining points. This gives a function for the left and right edge
+6. From one edge, compute the orthogonal distance to the function describing the other edge
 
 The complete process is outlined in the following Figure: 
 ![Pipeline figure](figures/pipeline.png)
