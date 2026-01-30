@@ -23,7 +23,6 @@ theme:
 extra_css:
   - stylesheets/extra.css
 
-docs_dir: ex2-CamerasAndLenses
 nav:
   - Home: readme.md
   - Old: readme.md
