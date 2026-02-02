@@ -24,7 +24,7 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - Home: readme_new.md
+  - Index: readme_new.md
   - Old: readme.md
   - Proposal: readme_new.md
   
