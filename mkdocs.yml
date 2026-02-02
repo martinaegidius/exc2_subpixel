@@ -24,9 +24,9 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - Index: readme_new.md
-  - Old: readme.md
-  - Proposal: readme_new.md
+  - Home: index.md
+  - Week2: readme_new.md
+  - Old: readme_old.md
   
 
 # Markdown extensions for nicer formatting
